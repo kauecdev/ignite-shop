@@ -11,11 +11,11 @@ globalStyles()
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <Container>
+    <Container className={roboto.className}>
       <Header>
         <Image src={logo} alt="" />
       </Header>
-      <Component {...pageProps} className={roboto.className} />
+      <Component {...pageProps} />
     </Container>
   );
 }
