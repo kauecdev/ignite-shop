@@ -6,6 +6,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { useState } from "react";
 import Stripe from "stripe";
+import { useShoppingCart } from "use-shopping-cart";
 
 interface ProductProps {
   product: {
@@ -13,29 +14,21 @@ interface ProductProps {
     name: string
     imageUrl: string
     price: string
+    priceUnitAmount: number
     description: string
     defaultPriceId: string
   }
 }
 
 export default function Product({ product }: ProductProps) {
-  const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] = useState(false)
+  const { addItem } = useShoppingCart()
 
-  async function handleBuyProduct() {
-    try {
-      setIsCreatingCheckoutSession(true)
-
-      const response = await axios.post('/api/checkout', {
-        priceId: product.defaultPriceId
-      })
-
-      const { checkoutUrl } = response.data
-
-      window.location.href = checkoutUrl
-    } catch (err) {
-      setIsCreatingCheckoutSession(false)
-      alert('Falha ao redirecionar ao checkout.')
-    }
+  async function handleAddProductToCart() {
+    addItem({
+      ...product,
+      currency: 'BRL',
+      price: product.priceUnitAmount
+    })
   }
 
   return (
@@ -51,8 +44,8 @@ export default function Product({ product }: ProductProps) {
           <h1>{product.name}</h1>
           <span>{product.price}</span>
           <p>{product.description}</p>
-          <button disabled={isCreatingCheckoutSession} onClick={handleBuyProduct}>
-            Comprar agora
+          <button onClick={handleAddProductToCart}>
+            Colocar na sacola
           </button>
         </ProductDetails>
       </ProductContainer>
@@ -92,6 +85,7 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ para
           style: 'currency',
           currency: 'BRL'
         }).format(price.unit_amount! / 100),
+        priceUnitAmount: price.unit_amount,
         description: product.description,
         defaultPriceId: price.id,
       }
